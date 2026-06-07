@@ -66,14 +66,14 @@ class LLMRequest(BaseModel):
 # 3. Ответ от LLM
 # ---------------------------------------------------------------------------
 
-# Оценка критичности: строго 1..5
+# Оценка критичности строго от 1 до 5
 CriticalityGrade = Annotated[int, Field(ge=1, le=5)]
 
 
 class LLMResponse(BaseModel):
     """
     То что будет выдавть модель (id, кртичность ситуации, является ли проблемой, краткий овтет модели)
-    Если is_problem=False (благодарность, вопрос, спам и т.д.) — grade_critical=None
+    Если is_problem=False (благодарность, вопрос, спам и т.д.) - grade_critical=None
     """
 
     id: int
@@ -91,7 +91,7 @@ class LLMResponse(BaseModel):
     def grade_required_when_problem(self) -> "LLMResponse":
         """
         Если is_problem=True, в таком случаен оценка критичности должна быть выставлена
-        Если is_problem=False, принудительно ставим а нее None
+        Если is_problem=False, принудительно ставим в нее None
         """
         if self.is_problem and self.grade_critical is None:
             raise ValueError("grade_critical обязателен когда is_problem=True")
@@ -106,11 +106,11 @@ class LLMResponse(BaseModel):
 
 class EnrichedIncident(BaseModel):
     """
-    Финальная строка для сохранения в БД / экспорта:
-    оригинальные метаданные + результат классификации LLM
+    Модель для сохранения в БД
+    складываем оригинальные метаданные + результат классификации LLM
     """
 
-    # Метаданные из исходника
+    # Столбцы из исходника
     id: int
     date_created: datetime | None
     topic_group: str | None
@@ -119,7 +119,7 @@ class EnrichedIncident(BaseModel):
     locality: str | None
     incident_text: str
 
-    # Результат LLM
+    # Результат LLMки
     is_problem: bool
     grade_critical: int | None
     reason: str | None
