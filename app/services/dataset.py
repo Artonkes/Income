@@ -10,7 +10,6 @@ from text_cleaner import clean_text
 logger = logging.getLogger(__name__)
 
 
-# Нужные нам колонки
 REQUIRED_COLUMNS = [
     "ID",
     "Дата создания",
@@ -21,7 +20,6 @@ REQUIRED_COLUMNS = [
     "Текст инцидента",
 ]
 
-# Изменение навзания колонок, для более удобного использования в коде
 COLUMN_RENAME_MAP = {
     "ID":               "id",
     "Дата создания":    "date_created",
@@ -69,7 +67,6 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df["incident_text"] = df["incident_text"].apply(clean_text)
 
     before = len(df)
-    # Удаляем строки которые стали пустыми после отчистки
     df = df[df["incident_text"].str.len() > 0].copy()
     after = len(df)
 
@@ -92,12 +89,6 @@ def save_parquet(df: pd.DataFrame, output_path: str | Path) -> Path:
 
 
 def prepare_dataset(input_filepath: str | Path, output_filepath: str | Path) -> pd.DataFrame:
-    """
-    Полный пайплайн для подготовки датасета
-      1. Загрузка файла xlsx
-      2. Очистка текста из колонкки инцедентов
-      3. Сохранение в Parquet
-    """
     df = load_raw(input_filepath)
     df = clean_dataset(df)
     save_parquet(df, output_filepath)
