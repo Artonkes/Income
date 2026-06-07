@@ -15,10 +15,6 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class IncidentRow(BaseModel):
-    """
-    Представляет одну запись из датасета с нужными колонками. Все ненужные колонки убраны
-    """
-
     id: int = Field(..., description="Уникальный ID обращения из исходного файла")
     date_created: datetime | None = Field(None, description="Дата создания обращения")
     topic_group: str | None = Field(None, description="Группа тем")
@@ -36,10 +32,6 @@ class IncidentRow(BaseModel):
 
 
 class LLMRequest(BaseModel):
-    """
-    Данные для анализа llm. Только id и текст инцедента
-    """
-
     id: int
     incident_text: str = Field(..., alias="текст_инцидента")
 
@@ -50,20 +42,13 @@ class LLMRequest(BaseModel):
         return cls(id=row.id, текст_инцидента=row.incident_text)
 
     def to_prompt_dict(self) -> dict:
-        """Сериализует в словарь, который вставляется в строку промпта"""
         return {"id": self.id, "текст_инцидента": self.incident_text}
 
 
-# Оценка критичности строго от 1 до 5
 CriticalityGrade = Annotated[int, Field(ge=1, le=5)]
 
 
 class LLMResponse(BaseModel):
-    """
-    То что будет выдавть модель (id, кртичность ситуации, является ли проблемой, краткий овтет модели)
-    Если is_problem=False (благодарность, вопрос, спам и т.д.) - grade_critical=None
-    """
-
     id: int
     is_problem: bool = Field(..., description="True = обращение содержит проблему")
     grade_critical: CriticalityGrade | None = Field(
@@ -77,10 +62,6 @@ class LLMResponse(BaseModel):
 
     @model_validator(mode="after")
     def grade_required_when_problem(self) -> "LLMResponse":
-        """
-        Если is_problem=True, в таком случаен оценка критичности должна быть выставлена
-        Если is_problem=False, принудительно ставим в нее None
-        """
         if self.is_problem and self.grade_critical is None:
             raise ValueError("grade_critical обязателен когда is_problem=True")
         if not self.is_problem:
@@ -89,12 +70,6 @@ class LLMResponse(BaseModel):
 
 
 class EnrichedIncident(BaseModel):
-    """
-    Модель для сохранения в БД
-    складываем оригинальные метаданные + результат классификации LLM
-    """
-
-    # Столбцы из исходника
     id: int
     date_created: datetime | None
     topic_group: str | None
@@ -103,15 +78,13 @@ class EnrichedIncident(BaseModel):
     locality: str | None
     incident_text: str
 
-    # Результат LLMки
     is_problem: bool
     grade_critical: int | None
     reason: str | None
 
     @classmethod
     def merge(cls, row: IncidentRow, result: LLMResponse) -> "EnrichedIncident":
-        """Объединяет строку датасета и ответ LLM в одну запись"""
-        assert row.id == result.id, "ID строки и ответа LLM не совпадают!"
+        assert row.id == result.id, "ID строки и ответа LLM не совпадают"
         return cls(
             id=row.id,
             date_created=row.date_created,
