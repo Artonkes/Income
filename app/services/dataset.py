@@ -67,3 +67,22 @@ def load_raw(filepath: str | Path) -> pd.DataFrame:
     return df
 
 
+def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Очищаем весь текст из колонки incident_text при помощи функции clean_text
+    """
+    logger.info("Начинаем очистку текста...")
+
+    df["incident_text"] = df["incident_text"].apply(clean_text)
+
+    before = len(df)
+    # Удаляем строки которые стали пустыми после отчистки
+    df = df[df["incident_text"].str.len() > 0].copy()
+    after = len(df)
+
+    logger.info("Удалено строк с пустым текстом: %d", before - after)
+    logger.info("Итого строк после очистки: %d", after)
+
+    return df
+
+
