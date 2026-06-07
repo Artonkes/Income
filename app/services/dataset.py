@@ -97,3 +97,24 @@ def save_parquet(df: pd.DataFrame, output_path: str | Path) -> Path:
     logger.info("Сохранено в %s (%.2f MB)", output_path, size_mb)
     return output_path
 
+
+def prepare_dataset(input_filepath: str | Path, output_filepath: str | Path) -> pd.DataFrame:
+    """
+    Полный пайплайн для подготовки датасета
+      1. Загрузка файла xlsx
+      2. Очистка текста из колонкки инцедентов
+      3. Сохранение в Parquet
+    """
+    df = load_raw(input_filepath)
+    df = clean_dataset(df)
+    save_parquet(df, output_filepath)
+    return df
+
+
+def load_parquet(filepath: str | Path) -> pd.DataFrame:
+    return pd.read_parquet(filepath)
+
+
+
+
+
