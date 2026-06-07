@@ -2,16 +2,6 @@ import pandas as pd
 import re
 
 
-_USE_COLS = [
-    "ID",
-    "Дата создания",
-    "Группа тем",
-    "Тема",
-    "Муниципалитет",
-    "Населенный пункт",
-    "Текст инцидента",
-]
-
 #---------------------------------------------------------------------------
 # Compiled patterns (module-level constants — compiled exactly once)
 # ---------------------------------------------------------------------------
@@ -140,14 +130,3 @@ def clean_text(text: str | None) -> str:
     text = _normalize_whitespace(text)
 
     return text.lower()
-
-
-def convert_clean_dataset(path: str = "data_test/data_100_full.xlsx"):
-    df = pd.read_excel(path, engine="openpyxl", usecols=_USE_COLS)
-    df[_USE_COLS[-1]] = df[_USE_COLS[-1]].apply(clean_text)
-
-    df.to_excel("/home/faster/ProjectsPy/Income/data_test/data_clean_100_excel.xlsx")
-
-    return df
-
-convert_clean_dataset()
