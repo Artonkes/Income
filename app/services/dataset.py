@@ -45,7 +45,7 @@ def load_raw(filepath: str | Path) -> pd.DataFrame:
     Читает файл .xlsx и возвращает pd.DataFrame с нужными нам колонками
     """
     filepath = Path(filepath)
-    logger.info("Загружаем файл: %s", filepath)
+    logger.info("Загрузка файла: %s", filepath)
 
     df = pd.read_excel(filepath, engine="openpyxl")
     logger.info("Загружено строк: %d, колонок: %d", len(df), len(df.columns))
@@ -63,7 +63,7 @@ def load_raw(filepath: str | Path) -> pd.DataFrame:
     df = df[REQUIRED_COLUMNS].copy()
     df.rename(columns=COLUMN_RENAME_MAP, inplace=True)
 
-    logger.info("Оставленые колонки: %d", df.columns)
+    logger.info("Колонки которые остались: %d, количество %d", df.columns, len(df.columns))
     return df
 
 
@@ -81,7 +81,7 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     after = len(df)
 
     logger.info("Удалено строк с пустым текстом: %d", before - after)
-    logger.info("Итого строк после очистки: %d", after)
+    logger.info("Количество строк после очистки: %d", after)
 
     return df
 
