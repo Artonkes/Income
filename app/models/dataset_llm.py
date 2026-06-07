@@ -1,9 +1,9 @@
 """
 Pydantic модели:
-  - IncidentRow     — одна строка очищенного датасета
-  - LLMRequest      — данные отправляемые в LLM
-  - LLMResponse     — ответ от LLM
-  - BatchResult     — результат обработки одного батча
+  - IncidentRow - одна строка очищенного датасета
+  - LLMRequest - данные отправляемые в LLM
+  - LLMResponse - ответ от LLM
+  - BatchResult - результат обработки одного батча
 """
 
 from __future__ import annotations
