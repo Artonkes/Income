@@ -86,3 +86,14 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def save_parquet(df: pd.DataFrame, output_path: str | Path) -> Path:
+    """
+    Эта функция сохраняет очищенный датасет в формат Parquet
+    """
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(output_path, index=False, compression="snappy")
+    size_mb = output_path.stat().st_size / 1024 / 1024
+    logger.info("Сохранено в %s (%.2f MB)", output_path, size_mb)
+    return output_path
+
