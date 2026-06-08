@@ -1,4 +1,4 @@
-from fastapi import UploadFile, File, HTTPException, APIRouter
+from fastapi import UploadFile, File, HTTPException, APIRouter, BackgroundTasks
 from uuid import uuid4
 import os
 
@@ -17,7 +17,7 @@ def process_file(file_path: str, task_id: str):
 
 
 @router.post("/file")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), background_tasks: BackgroundTasks = BackgroundTasks()):
     
     if not file.filename.endswith((".xlsx", ".xls")):
         raise HTTPException(status_code=400, detail="Только Excel файлы")
@@ -29,6 +29,8 @@ async def upload_file(file: UploadFile = File(...)):
 
     with open(file_patch, "wb") as f:
         f.write(contents)
+
+    background_tasks.add_task(process_file, file_patch, task_id)
     
     # Сохранение файла в Redis
     r.hset(task_id, mapping={
