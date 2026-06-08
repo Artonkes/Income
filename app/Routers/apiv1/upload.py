@@ -1,7 +1,8 @@
 from fastapi import UploadFile, File, HTTPException
 from fastapi import APIRouter
-
 from uuid import uuid4
+
+from app.models.dataset_llm import UploadResponse
 from app.Redis.clien import r
 
 router = APIRouter(prefix="/api/upload/v1", tags=["Upload routers"])
@@ -22,24 +23,25 @@ async def upload_file(file: UploadFile = File(...)):
         'processed': 0,
     })
 
-    return {
-        "task_id": task_id,
-        "filename": file.filename,
-        "size": len(contents)
-    }
+    return UploadResponse(
+        task_id=task_id,
+        filename=file.filename,
+        size=len(contents),
+        status="processing"
+    )
 
 
 @router.get("/status/{task_id}")
 def get_status(task_id: str):
     data = r.hgetall(task_id)
+    
     if not data:
         raise HTTPException(status_code=404, detail="Задача не найдена")
     
-    total = int(data['total'] if ["data"] != 0 else 1)
+    total = int(data['total'])
     processed = int(data['processed'])
-
     progress = round(processed / total * 100, 1) if total > 0 else 0.0
-
+    
     return {
         "task_id": task_id,
         "status": data['status'],
@@ -47,7 +49,7 @@ def get_status(task_id: str):
     }
 
 
-@router.get("/update_status/{task_id}")
+@router.get("/result/{task_id}")
 def update_status(task_id: str):
     data = r.hgetall(task_id)
     if not data:

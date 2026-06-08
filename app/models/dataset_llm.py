@@ -14,6 +14,13 @@ from typing import Annotated
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+# Вывод при загрузки файла
+class UploadResponse(BaseModel):
+    task_id: str
+    filename: str
+    size: int
+    status: str
+
 # ---------------------------------------------------------------------------
 # 1. Строка датасета после очистки
 # ---------------------------------------------------------------------------
