@@ -1,9 +1,8 @@
 """
-Pydantic модели:
-  - IncidentRow     — одна строка очищенного датасета
-  - LLMRequest      — данные отправляемые в LLM
-  - LLMResponse     — ответ от LLM
-  - BatchResult     — результат обработки одного батча
+IncidentRow - одна строка очищенного датасета
+LLMRequest - данные отправляемые в LLM
+LLMResponse - ответ от LLM
+BatchResult - результат обработки одного батча
 """
 
 from __future__ import annotations
@@ -12,6 +11,7 @@ from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+
 
 
 # Вывод при загрузки файла
@@ -26,10 +26,6 @@ class UploadResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class IncidentRow(BaseModel):
-    """
-    Представляет одну запись из датасета с нужными колонками. Все ненужные колонки убраны
-    """
-
     id: int = Field(..., description="Уникальный ID обращения из исходного файла")
     date_created: datetime | None = Field(None, description="Дата создания обращения")
     topic_group: str | None = Field(None, description="Группа тем")
@@ -46,15 +42,7 @@ class IncidentRow(BaseModel):
         return v.strip()
 
 
-# ---------------------------------------------------------------------------
-# 2. Запрос в LLM
-# ---------------------------------------------------------------------------
-
 class LLMRequest(BaseModel):
-    """
-    Данные для анализа llm. Только id и текст инцедента
-    """
-
     id: int
     incident_text: str = Field(..., alias="текст_инцидента")
 
@@ -65,24 +53,13 @@ class LLMRequest(BaseModel):
         return cls(id=row.id, текст_инцидента=row.incident_text)
 
     def to_prompt_dict(self) -> dict:
-        """Сериализует в словарь, который вставляется в строку промпта"""
         return {"id": self.id, "текст_инцидента": self.incident_text}
 
 
-# ---------------------------------------------------------------------------
-# 3. Ответ от LLM
-# ---------------------------------------------------------------------------
-
-# Оценка критичности: строго 1..5
 CriticalityGrade = Annotated[int, Field(ge=1, le=5)]
 
 
 class LLMResponse(BaseModel):
-    """
-    То что будет выдавть модель (id, кртичность ситуации, является ли проблемой, краткий овтет модели)
-    Если is_problem=False (благодарность, вопрос, спам и т.д.) — grade_critical=None
-    """
-
     id: int
     is_problem: bool = Field(..., description="True = обращение содержит проблему")
     grade_critical: CriticalityGrade | None = Field(
@@ -96,10 +73,6 @@ class LLMResponse(BaseModel):
 
     @model_validator(mode="after")
     def grade_required_when_problem(self) -> "LLMResponse":
-        """
-        Если is_problem=True, в таком случаен оценка критичности должна быть выставлена
-        Если is_problem=False, принудительно ставим а нее None
-        """
         if self.is_problem and self.grade_critical is None:
             raise ValueError("grade_critical обязателен когда is_problem=True")
         if not self.is_problem:
@@ -107,17 +80,7 @@ class LLMResponse(BaseModel):
         return self
 
 
-# ---------------------------------------------------------------------------
-# 4. Итоговая запись (строка датасета + результат LLM)
-# ---------------------------------------------------------------------------
-
 class EnrichedIncident(BaseModel):
-    """
-    Финальная строка для сохранения в БД / экспорта:
-    оригинальные метаданные + результат классификации LLM
-    """
-
-    # Метаданные из исходника
     id: int
     date_created: datetime | None
     topic_group: str | None
@@ -126,15 +89,13 @@ class EnrichedIncident(BaseModel):
     locality: str | None
     incident_text: str
 
-    # Результат LLM
     is_problem: bool
     grade_critical: int | None
     reason: str | None
 
     @classmethod
     def merge(cls, row: IncidentRow, result: LLMResponse) -> "EnrichedIncident":
-        """Объединяет строку датасета и ответ LLM в одну запись"""
-        assert row.id == result.id, "ID строки и ответа LLM не совпадают!"
+        assert row.id == result.id, "ID строки и ответа LLM не совпадают"
         return cls(
             id=row.id,
             date_created=row.date_created,

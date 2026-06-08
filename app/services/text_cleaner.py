@@ -2,23 +2,19 @@ import pandas as pd
 import re
 
 
-#---------------------------------------------------------------------------
-# Compiled patterns (module-level constants — compiled exactly once)
-# ---------------------------------------------------------------------------
-
 _EMOJI = re.compile(
     "["
-    "\U0001F600-\U0001F64F"  # emoticons
-    "\U0001F300-\U0001F5FF"  # symbols & pictographs
-    "\U0001F680-\U0001F6FF"  # transport & map
-    "\U0001F700-\U0001F77F"  # alchemical symbols
-    "\U0001F780-\U0001F7FF"  # geometric shapes extended
-    "\U0001F800-\U0001F8FF"  # supplemental arrows-C
-    "\U0001F900-\U0001F9FF"  # supplemental symbols
-    "\U0001FA00-\U0001FA6F"  # chess symbols / other
-    "\U0001FA70-\U0001FAFF"  # symbols and pictographs extended-A
-    "\U00002702-\U000027B0"  # dingbats
-    "\U000024C2-\U0001F251"  # enclosed characters
+    "\U0001F600-\U0001F64F"  
+    "\U0001F300-\U0001F5FF"  
+    "\U0001F680-\U0001F6FF"  
+    "\U0001F700-\U0001F77F"  
+    "\U0001F780-\U0001F7FF"  
+    "\U0001F800-\U0001F8FF"  
+    "\U0001F900-\U0001F9FF"  
+    "\U0001FA00-\U0001FA6F"  
+    "\U0001FA70-\U0001FAFF"  
+    "\U00002702-\U000027B0"  
+    "\U000024C2-\U0001F251" 
     "]+",
     flags=re.UNICODE,
 )
@@ -44,16 +40,11 @@ _LONE_DIGITS = re.compile(r'\b\d+\b')
 _MULTI_DOTS = re.compile(r'\.{2,}')
 
 
-# ---------------------------------------------------------------------------
-# Private single-responsibility helpers
-# ---------------------------------------------------------------------------
-
 def _strip_edge_quotes(text: str) -> str:
     return _EDGE_QUOTES.sub('', text)
 
 
 def _remove_social_markup(text: str) -> str:
-    """Remove VK tags, @mentions, and #hashtags."""
     text = _VK_CLUB_TAG.sub('', text)
     text = _VK_ID_TAG.sub('', text)
     text = _BARE_ID.sub('', text)
@@ -71,7 +62,6 @@ def _remove_media_captions(text: str) -> str:
 
 
 def _remove_contacts(text: str) -> str:
-    """Remove phone numbers and e-mail addresses."""
     text = _PHONE.sub('', text)
     text = _PHONE_LABEL.sub('', text)
     text = _EMAIL.sub('', text)
@@ -104,17 +94,7 @@ def _normalize_whitespace(text: str) -> str:
     return text.strip()
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
 def clean_text(text: str | None) -> str:
-    """
-    Return a cleaned version of *text* suitable for NLP downstream tasks.
-
-    Removes social-network markup, URLs, contacts, emoji, stray punctuation,
-    and normalises whitespace.  Returns an empty string for null/non-string input.
-    """
     if pd.isna(text) or not isinstance(text, str):
         return ""
 
