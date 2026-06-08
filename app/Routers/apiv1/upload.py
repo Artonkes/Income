@@ -1,11 +1,20 @@
-from fastapi import UploadFile, File, HTTPException
-from fastapi import APIRouter
+from fastapi import UploadFile, File, HTTPException, APIRouter
 from uuid import uuid4
+import os
 
 from app.models.dataset_llm import UploadResponse
 from app.Redis.clien import r
 
 router = APIRouter(prefix="/api/upload/v1", tags=["Upload routers"])
+
+UPLOAD_DIR = "/tmp/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+# Функция для обработки файла в фоне 
+def process_file(file_path: str, task_id: str):
+    pass
+
 
 @router.post("/file")
 async def upload_file(file: UploadFile = File(...)):
@@ -15,12 +24,18 @@ async def upload_file(file: UploadFile = File(...)):
     
     contents = await file.read()
     task_id = str(uuid4())  
+
+    file_patch = f"{UPLOAD_DIR}/{task_id}_{file.filename}"
+
+    with open(file_patch, "wb") as f:
+        f.write(contents)
     
     # Сохранение файла в Redis
     r.hset(task_id, mapping={
         'status': 'processing',
         'total': 0,
         'processed': 0,
+        'file_path': file_patch,
     })
 
     return UploadResponse(
@@ -30,7 +45,7 @@ async def upload_file(file: UploadFile = File(...)):
         status="processing"
     )
 
-
+# Получение статуса задачи
 @router.get("/status/{task_id}")
 def get_status(task_id: str):
     data = r.hgetall(task_id)
@@ -48,9 +63,9 @@ def get_status(task_id: str):
         "progress": progress
     }
 
-
+# Получение результата задачи
 @router.get("/result/{task_id}")
-def update_status(task_id: str):
+def get_result(task_id: str):
     data = r.hgetall(task_id)
     if not data:
         raise HTTPException(status_code=404, detail="Задача не найдена")
