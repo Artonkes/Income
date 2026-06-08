@@ -13,6 +13,18 @@ from typing import Annotated
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+
+# Вывод при загрузки файла
+class UploadResponse(BaseModel):
+    task_id: str
+    filename: str
+    size: int
+    status: str
+
+# ---------------------------------------------------------------------------
+# 1. Строка датасета после очистки
+# ---------------------------------------------------------------------------
+
 class IncidentRow(BaseModel):
     id: int = Field(..., description="Уникальный ID обращения из исходного файла")
     date_created: datetime | None = Field(None, description="Дата создания обращения")
